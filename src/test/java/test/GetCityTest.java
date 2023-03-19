@@ -1,6 +1,5 @@
 package test;
 
-import io.qameta.allure.Attachment;
 import io.qameta.allure.Description;
 import io.qameta.allure.Step;
 import io.restassured.response.Response;
@@ -8,12 +7,8 @@ import org.junit.jupiter.api.Test;
 import request.GetCities;
 import request.GetProduct;
 import response.city.CityRootResponse;
-import response.product.ProductList;
-import response.product.ProductRootResponse;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -24,7 +19,6 @@ class GetCityTest {
 
     @Description("Check weight all products in city")
     @Test
-    @Attachment(value = "products", type = "text/plain")
     void checkWeightForAllProductsInCity(){
         int idCity = getFromCities(getFromCities(1).getTotal()).getList()
                .stream().filter(p->p.getName().equals(CHECKED_CITY)).findFirst()
@@ -36,12 +30,12 @@ class GetCityTest {
                 products.addAll(getProductResponse(500, idCity, i).jsonPath().getList("List.Weight"));
             totalProduct -=500;
         }
+
         products.forEach(x-> assertNotEquals("0", x.toString(), "Product weight must be not 0"));
 
 
     }
     @Step("Get info from cities request")
-//    @Attachment(value = "CityResponse", type = "text/plain")
     private CityRootResponse getFromCities(int perPage){
         return GetCities.getCities(perPage)
                 .then()
@@ -49,7 +43,7 @@ class GetCityTest {
                 .extract().as(CityRootResponse.class);
     }
 
-    @Step("Get info from  products request {perPage}, {currentPage}")
+    @Step("Get info from  products request. Page {currentPage}")
     private Response getProductResponse(int perPage, int idCity, int currentPage){
         return GetProduct.getProduct(perPage, idCity, currentPage)
                 .then()
