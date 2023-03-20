@@ -1,53 +1,40 @@
 package test;
 
 import io.qameta.allure.Description;
-import io.qameta.allure.Step;
-import io.restassured.response.Response;
+import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.Test;
-import request.GetCities;
-import request.GetProduct;
-import response.city.CityRootResponse;
+import request.Cities;
+import request.Product;
 
 import java.util.*;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 
 class GetCityTest {
-
     private final String CHECKED_CITY = "Алматы";
 
     @Description("Check weight all products in city")
     @Test
     void checkWeightForAllProductsInCity(){
-        int idCity = getFromCities(getFromCities(1).getTotal()).getList()
-               .stream().filter(p->p.getName().equals(CHECKED_CITY)).findFirst()
-                .get().getId();
+        final int ID_CITY = Cities.getCityId(CHECKED_CITY);
+        SoftAssertions softAssertions = new SoftAssertions();
 
-        int totalProduct = getProductResponse(1, idCity, 1).jsonPath().getInt("Total");
-        List<? extends Number> products = new ArrayList<>();
-        for(int i = 1; totalProduct > 0; i++){
-                products.addAll(getProductResponse(500, idCity, i).jsonPath().getList("List.Weight"));
-            totalProduct -=500;
+        List<Integer> code = Product.getInfoAboutProduct("List.Code", ID_CITY);
+        List<String> name = Product.getInfoAboutProduct("List.Name", ID_CITY);
+        List<? extends Number> weight = Product.getInfoAboutProduct("List.Weight", ID_CITY);
+        List<List<String>> products = new ArrayList<>();
+        for (int i = 0; i < code.size(); i ++){
+            products.add(i, Arrays.asList(code.get(i).toString(), name.get(i), weight.get(i).toString()));
         }
-
-        products.forEach(x-> assertNotEquals("0", x.toString(), "Product weight must be not 0"));
-
-
-    }
-    @Step("Get info from cities request")
-    private CityRootResponse getFromCities(int perPage){
-        return GetCities.getCities(perPage)
-                .then()
-                .statusCode(200)
-                .extract().as(CityRootResponse.class);
-    }
-
-    @Step("Get info from  products request. Page {currentPage}")
-    private Response getProductResponse(int perPage, int idCity, int currentPage){
-        return GetProduct.getProduct(perPage, idCity, currentPage)
-                .then()
-                .extract().response();
+        products.forEach(x ->
+                softAssertions.assertThat(x.get(2))
+                        .as("Code %s, Name %s, Weight %s",
+                                x.get(0),
+                                x.get(1),
+                                x.get(2)
+                        )
+                        .isNotEqualTo("0")
+        );
+        softAssertions.assertAll();
     }
 
 }
