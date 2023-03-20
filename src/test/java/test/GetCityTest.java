@@ -27,7 +27,7 @@ class GetCityTest {
         }
         products.forEach(x ->
                 softAssertions.assertThat(x.get(2))
-                        .as("Code %s, Name %s, Weight %s",
+                        .as("Code: %s, Name: %s, Weight: %s",
                                 x.get(0),
                                 x.get(1),
                                 x.get(2)
