@@ -1,18 +1,22 @@
 package request;
 
+import base.Property;
 import io.restassured.http.ContentType;
 import io.restassured.specification.RequestSpecification;
 
 import static io.restassured.RestAssured.*;
 
 public class RequestCitySpec {
+    protected static Property property() {
+        return new Property();
+    }
     protected RequestCitySpec() {
     }
 
     public static RequestSpecification requestSpec(int perPage, int currentPage, int regionId) {
         return given()
-                .baseUri("https://kz.siberianwellness.com/api/v1")
-                .header("token", "fd49d3cd-789c-4d00-912d-3382ca4f3968")
+                .baseUri(property().getProperty("url"))
+                .header("token", property().getProperty("token"))
                 .contentType(ContentType.JSON)
                 .params("RegionId", regionId, "PerPage", perPage,
                         "CurrentPage", currentPage);
